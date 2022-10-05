@@ -1,0 +1,88 @@
+--DROP table JOBS CASCADE CONSTRAINTS;
+--DROP table DEPARTMENTS CASCADE CONSTRAINTS;
+--DROP table EMPLOYEES CASCADE CONSTRAINTS;
+--DROP table LOCATIONS CASCADE CONSTRAINTS;
+--DROP table COUNTRIES CASCADE CONSTRAINTS;
+--DROP table REGIONS CASCADE CONSTRAINTS;
+--DROP table JOB_HISTORY CASCADE CONSTRAINTS;
+
+
+CREATE table REGIONS(
+    region_id SMALLINT PRIMARY KEY NOT NULL,
+    region_name Varchar(50)
+);
+
+CREATE table COUNTRIES(
+    country_id SMALLINT PRIMARY KEY NOT NULL,
+    country_name Varchar(50),
+    region_id smallint,
+    FOREIGN KEY (region_id) REFERENCES REGIONS(region_id)
+);
+
+CREATE table LOCATIONS(
+    location_id SMALLINT PRIMARY KEY NOT NULL,
+    street_adres Varchar(50),
+    postal_code Varchar(50),
+    city Varchar(50),
+    state_province Varchar(50),
+    country_id SMALLINT,
+    FOREIGN KEY (country_id) REFERENCES COUNTRIES(country_id)
+);
+
+CREATE table DEPARTMENTS(
+    department_id Smallint PRIMARY KEY NOT NULL, 
+    department_name VARCHAR(50), 
+    manager_id SmallInt,
+    location_id SmallInt,
+    FOREIGN KEY (location_id) REFERENCES LOCATIONS(location_id)
+);
+
+
+
+CREATE table JOB_HISTORY(
+    employee_id Smallint PRIMARY KEY NOT NULL, 
+    start_dte Date, 
+    end_date Date, 
+    job_id Smallint, 
+    department_id Smallint
+);
+    
+
+CREATE table JOBS(
+    job_id Smallint PRIMARY KEY NOT NULL, 
+    start_date Date, 
+    job_title Varchar(50), 
+    min_salary Float, CHECK (max_salary- min_salary>=2000),
+    max_salary Float
+    
+);
+    
+
+CREATE table EMPLOYEES(
+    employee_id  Smallint PRIMARY KEY NOT NULL,
+    first_name Varchar(50),
+    last_name Varchar(50),
+    email Varchar(50),
+    phone_numer Varchar(50),
+    hire_date Date,
+    job_id Smallint,
+    salary Decimal(7,2),
+    commission_pct Varchar(50),
+    manager_id Smallint,
+    department_id Smallint
+);
+
+ALTER TABLE JOB_HISTORY ADD CONSTRAINT FK_departments1 FOREIGN KEY (department_id) REFERENCES DEPARTMENTS(department_id);
+ALTER TABLE JOB_HISTORY ADD CONSTRAINT FK_departments2 FOREIGN KEY (job_id) REFERENCES JOBS(job_id);
+ALTER TABLE JOB_HISTORY ADD CONSTRAINT FK_departments3 FOREIGN KEY (employee_id) REFERENCES EMPLOYEES(employee_id);
+ALTER TABLE EMPLOYEES ADD CONSTRAINT FK_employees1 FOREIGN KEY (manager_id) REFERENCES EMPLOYEES(employee_id);
+ALTER TABLE EMPLOYEES ADD CONSTRAINT FK_employees2 FOREIGN KEY (job_id) REFERENCES JOBS(job_id);
+ALTER TABLE EMPLOYEES ADD CONSTRAINT FK_employees3 FOREIGN KEY (department_id) REFERENCES DEPARTMENTS(department_id);
+ALTER TABLE DEPARTMENTS ADD CONSTRAINT FK_departments4 FOREIGN KEY (department_id) REFERENCES DEPARTMENTS(department_id);
+
+
+DROP table JOBS CASCADE CONSTRAINTS;
+ROLLBACK;
+
+
+
