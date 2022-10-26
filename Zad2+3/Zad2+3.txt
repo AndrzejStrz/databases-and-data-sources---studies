@@ -1,0 +1,126 @@
+--CREATE TABLE COUNTRIES AS( SELECT * FROM HR.countries);
+--
+--CREATE TABLE REGIONS AS( SELECT * FROM HR.regions);
+--
+--CREATE TABLE LOCATIONS AS( SELECT * FROM HR.locations);
+--
+--CREATE TABLE DEPARTMENTS AS( SELECT * FROM HR.departments);
+--
+--CREATE TABLE JOBS AS( SELECT * FROM HR.jobs);
+--
+--CREATE TABLE EMPLOYEES AS( SELECT * FROM HR.employees);
+--
+--CREATE TABLE JOB_HISTORY AS( SELECT * FROM HR.job_history);
+--
+
+-- CREATE TABLE job_grades AS SELECT * FROM HR.job_grades;
+-- ALTER TABLE job_grades ADD PRIMARY KEY(grade);
+
+--ALTER TABLE REGIONS
+--ADD PRIMARY KEY (REGION_ID);
+--
+--ALTER TABLE COUNTRIES
+--ADD PRIMARY KEY (COUNTRY_ID)
+--ADD FOREIGN KEY (REGION_ID)
+--REFERENCES REGIONS(REGION_ID) ON DELETE CASCADE;
+--
+--ALTER TABLE LOCATIONS
+--ADD PRIMARY KEY (LOCATION_ID)
+--ADD FOREIGN KEY (COUNTRY_ID)
+--REFERENCES COUNTRIES(COUNTRY_ID) ON DELETE CASCADE;
+--
+--ALTER TABLE JOBS
+--ADD PRIMARY KEY (JOB_ID);
+--
+--ALTER TABLE DEPARTMENTS
+--ADD PRIMARY KEY (DEPARTMENT_ID)
+--ADD FOREIGN KEY (LOCATION_ID)
+--REFERENCES LOCATIONS(LOCATION_ID) ON DELETE CASCADE;
+--
+--ALTER TABLE EMPLOYEES
+--ADD PRIMARY KEY (EMPLOYEE_ID)
+--ADD FOREIGN KEY (JOB_ID)
+--REFERENCES JOBS(JOB_ID) ON DELETE CASCADE
+--ADD FOREIGN KEY (DEPARTMENT_ID)
+--REFERENCES DEPARTMENTS(DEPARTMENT_ID) ON DELETE CASCADE;
+--
+--
+--ALTER TABLE JOB_HISTORY
+--ADD PRIMARY KEY (EMPLOYEE_ID, START_DATE)
+--ADD FOREIGN KEY (JOB_ID)
+--REFERENCES JOBS(JOB_ID) ON DELETE CASCADE
+--ADD FOREIGN KEY (DEPARTMENT_ID)
+--REFERENCES DEPARTMENTS(DEPARTMENT_ID) ON DELETE CASCADE
+--ADD FOREIGN KEY (EMPLOYEE_ID)
+--REFERENCES EMPLOYEES(EMPLOYEE_ID) ON DELETE CASCADE;
+--
+--ALTER TABLE EMPLOYEES
+--ADD FOREIGN KEY (MANAGER_ID)
+--REFERENCES EMPLOYEES(EMPLOYEE_ID);
+
+-- 1. Z tabeli employees wypisz w jednej kolumnie nazwisko i zarobki – nazwij kolumnę wynagrodzenie, dla osób z departamentów 20 i 50 z zarobkami pomiędzy 2000 a 7000, uporządkuj kolumny według nazwiska
+--SELECT (last_name||' '||salary) AS wymagrodzenie FROM employees WHERE((department_id =20 or department_id=50)AND (salary>=2000 and salary<=7000)) ORDER BY last_name;
+
+-- 2. Z tabeli employees wyciągnąć informację data zatrudnienia, nazwisko oraz kolumnę podaną przez użytkownika dla osób mających menadżera zatrudnionych w roku 2005. Uporządkować według kolumny podanej przez użytkownika
+--SELECT hire_date,last_name, &pole FROM employees WHERE (MANAGER_ID IS NOT NULL and 	SUBSTR(hire_date,1,2)='05') ORDER BY &pole; 
+
+-- 3. Wypisać imiona i nazwiska  razem, zarobki oraz numer telefonu porządkując dane według pierwszej kolumny malejąco  a następnie drugiej rosnąco (użyć numerów do porządkowania) dla osób z trzecią literą nazwiska ‘e’ oraz częścią imienia podaną przez użytkownika
+--SELECT FIRST_NAME||' '||LAST_NAME as NAME, SALARY, PHONE_NUMBER
+--FROM EMPLOYEES
+--WHERE ((REGEXP_LIKE(FIRST_NAME, '&IN') AND (SUBSTR(LAST_NAME,3,1)='e')))
+--ORDER BY 1 DESC,2 ASC;
+
+-- 4. Wypisać imię i nazwisko, liczbę miesięcy przepracowanych – funkcje months_between oraz round oraz kolumnę wysokość_dodatku jako (użyć CASE lub DECODE):
+--10% wynagrodzenia dla liczby miesięcy do 150
+--20% wynagrodzenia dla liczby miesięcy od 150 do 200
+--30% wynagrodzenia dla liczby miesięcy od 200
+--uporządkować według liczby miesięcy
+
+--SELECT first_name, last_name, work_time, 
+--    CASE 
+--        WHEN work_time < 150 THEN ROUND(0.1 * salary, 2)
+--        WHEN work_time >= 150 AND work_time <200 THEN ROUND(0.2 * salary, 2)
+--        WHEN work_time >= 200 THEN ROUND(0.3 * salary, 2)
+--    END AS wysokosc_dodatku
+--    FROM (SELECT first_name, last_name, ROUND(MONTHS_BETWEEN(SYSDATE, hire_date), 0) AS work_time, salary FROM employees)
+--    ORDER BY work_time;
+
+-- 5. Dla każdego działów w których minimalna płaca jest wyższa niż 5000 wypisz sumę oraz średnią zarobków zaokrągloną do całości nazwij odpowiednio kolumny
+--SELECT departments.department_name, SUM(salary) AS suma, ROUND(AVG(salary), 0) AS srednia
+--    FROM employees z1 JOIN departments on z1.department_id = departments.department_id
+--    WHERE (SELECT MIN(salary) 
+--                    FROM employees z2 JOIN departments on z2.department_id = departments.department_id 
+--                    WHERE z1.department_id = z2.department_id)>=5000
+--    GROUP BY departments.department_name;
+
+-- 6. Wypisać nazwisko, numer departamentu, nazwę departamentu, id pracy, dla osób z pracujących Toronto
+--SELECT employees.last_name, employees.department_id, departments.department_name, employees.job_id
+--    FROM employees JOIN departments on employees.department_id = departments.department_id
+--        JOIN locations on departments.location_id = locations.location_id
+--    WHERE locations.city = 'Toronto';
+    
+--7.Dla pracowników o imieniu „Jennifer” wypisz imię i nazwisko tego pracownika oraz osoby które z nim współpracują
+--SELECT z1.first_name, z1.last_name, z2.first_name, z2.last_name
+--    FROM employees z1 JOIN employees z2 on z1.department_id = z2.department_id
+--    WHERE z1.first_name = 'Jennifer' AND z1.first_name != z2.first_name AND z1.last_name != z2.last_name
+--    ORDER BY z1.employee_id;
+    
+-- 8. Wypisać wszystkie departamenty w których nie ma pracowników
+--SELECT DISTINCT z1.department_id, z1.department_name
+--    FROM departments z1
+--    WHERE (SELECT COUNT(department_id) FROM employees WHERE department_id = z1.department_id) <1;
+
+-- 10. Wypisz imię i nazwisko, id pracy, nazwę departamentu, zarobki, oraz odpowiedni grade dla każdego pracownika
+--SELECT e1.first_name, e1.last_name, e1.job_id, departments.department_name, e1.salary, (SELECT grade FROM job_grades WHERE e1.salary >= min_salary AND e1.salary <= max_salary) AS grade
+--    FROM employees e1 JOIN departments ON e1.department_id = departments.department_id;
+
+--11. Wypisz imię nazwisko oraz zarobki dla osób które zarabiają więcej niż średnia wszystkich, uporządkuj malejąco według zarobków
+--SELECT first_name, last_name, salary
+--    FROM employees
+--    WHERE (SELECT AVG(salary) FROM employees) < salary
+--    ORDER BY salary DESC;
+
+--12. 
+SELECT employee_id, first_name, last_name
+    FROM employees z1
+    WHERE (SELECT COUNT(employee_id) FROM employees WHERE department_id = z1.department_id AND last_name LIKE '%u%')<1;
