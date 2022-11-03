@@ -1,0 +1,109 @@
+--DECLARE
+--    numer_max NUMBER;
+--    nazwa departments.department_name%TYPE:='test';
+--BEGIN
+--DECLARE
+--    numer_max NUMBER;
+--    nazwa departments.department_name%TYPE:='test';
+--BEGIN
+--    SELECT MAX(department_id) INTO numer_max FROM departments;
+--    DBMS_OUTPUT.PUT_LINE(numer_max);
+--    INSERT INTO departments (department_id, department_name)
+--        VALUES (numer_max + 10, nazwa);
+--END;
+
+--DECLARE
+--    numer_max NUMBER;
+--    nazwa departments.department_name%TYPE:='EDUCATION';
+--BEGIN
+--    SELECT MAX(department_id) INTO numer_max FROM departments;
+--    DBMS_OUTPUT.PUT_LINE(numer_max);
+--    INSERT INTO departments (department_id, department_name)
+--        VALUES (numer_max + 10, nazwa);
+--    UPDATE departments SET location_id = 3000
+--        WHERE department_id = numer_max + 10;
+--END;
+
+--CREATE TABLE nowa(pole VARCHAR(10));
+--BEGIN
+--    FOR i IN 1..10
+--    LOOP
+--        IF (i != 4 AND i != 6) 
+--        THEN INSERT INTO nowa(pole) VALUES(i);
+--        END IF;
+--    END LOOP;
+--END;
+
+--DECLARE
+--    panstwo countries%ROWTYPE;
+--BEGIN
+--    SELECT * INTO panstwo FROM countries WHERE country_id = 'CA';
+--    DBMS_OUTPUT.PUT_LINE('panstwo: ' || panstwo.country_name || ', id regionu: ' || panstwo.region_id);
+--END;
+
+--DECLARE
+--    TYPE dep_type IS ;
+--    departamenty dep_type;
+--BEGIN
+--    FOR i IN 1..10
+--    LOOP
+--        SELECT department_name INTO departamenty(i) FROM departments
+--            WHERE department_id = 10 * i;
+--        DBMS_OUTPUT.PUT_LINE(departamenty(i));
+--    END LOOP;
+--END;
+--
+--DECLARE
+--    TYPE dep_type IS TABLE OF
+--        departments%ROWTYPE
+--        INDEX BY PLS_INTEGER;
+--    departamenty dep_type;
+--BEGIN
+--    FOR i IN 1..10
+--    LOOP
+--        SELECT * INTO departamenty(i) FROM departments
+--            WHERE department_id = 10 * i;
+--        DBMS_OUTPUT.PUT_LINE(departamenty(i).department_id || ', ' || 
+--            departamenty(i).department_name || ', ' || 
+--            departamenty(i).manager_id || ', ' || 
+--            departamenty(i).location_id);
+--    END LOOP;
+--END;
+--
+--DECLARE
+--    CURSOR salary_lastname_dept50 IS
+--        SELECT salary, last_name FROM employees WHERE department_id = 50;
+--    wiersz salary_lastname_dept50%ROWTYPE;
+--BEGIN
+--    OPEN salary_lastname_dept50;
+--    LOOP
+--        FETCH salary_lastname_dept50 INTO wiersz;
+--        EXIT WHEN salary_lastname_dept50%NOTFOUND;
+--        IF wiersz.salary > 3100 THEN
+--            DBMS_OUTPUT.PUT_LINE(wiersz.last_name || ' - nie dawać podwyżki');
+--        ELSE
+--            DBMS_OUTPUT.PUT_LINE(wiersz.last_name || ' - dać podwyżkę');
+--        END IF;
+--    END LOOP;
+--    CLOSE salary_lastname_dept50;
+--END;
+--
+--DECLARE
+--    CURSOR dane(zarobki_min NUMBER, zarobki_max NUMBER, imie VARCHAR) IS
+--        SELECT salary, first_name, last_name FROM employees
+--        WHERE (salary BETWEEN zarobki_min AND zarobki_max)
+--        AND (LOWER(first_name) LIKE '%' || imie || '%');
+--    wiersz dane%ROWTYPE;
+--BEGIN
+--    FOR wiersz IN dane(1000, 5000, 'a')
+--    LOOP
+--        DBMS_OUTPUT.PUT_LINE(wiersz.salary || ', ' ||
+--            wiersz.first_name || ' ' || wiersz.last_name);
+--    END LOOP;
+--    FOR wiersz IN dane(5000, 20000, 'u')
+--    LOOP
+--        DBMS_OUTPUT.PUT_LINE(wiersz.salary || ', ' ||
+--            wiersz.first_name || ' ' || wiersz.last_name);
+--    END LOOP;
+--END;
+
