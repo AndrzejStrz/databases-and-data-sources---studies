@@ -1,0 +1,108 @@
+-- Zad9 a
+--CREATE OR REPLACE PROCEDURE dodaj_prace(JOB_ID IN VARCHAR, JOB_TITLE IN VARCHAR, MIN_SALARY IN INT, MAX_SALARY IN INT) IS 
+--    BEGIN
+--        INSERT INTO jobs VALUES (JOB_ID, JOB_TITLE,MIN_SALARY,MAX_SALARY);
+--        EXCEPTION
+--            WHEN OTHERS
+--            THEN DBMS_OUTPUT.PUT_LINE('Unknown error');
+--    END dodaj_prace;
+--/
+--BEGIN
+--    dodaj_prace('AI2_men', 'AI menadzerek ', 10000,20000);
+--END;
+--DROP PROCEDURE dodaj_prace;
+--/
+
+--CREATE TABLE error_log(user_name VARCHAR(20), error_number INT, error_msg VARCHAR(100));
+--
+--create or replace PROCEDURE edytuj_opis(job_id_to_edit IN VARCHAR, Job_title_to_edit IN VARCHAR) IS
+--    no_jobs_updated EXCEPTION;
+--    error_number error_log.error_number%TYPE;
+--    error_info error_log.error_msg%TYPE;
+--    BEGIN
+--        UPDATE jobs SET jobs.JOB_TITLE = Job_title_to_edit WHERE jobs.JOB_ID = job_id_to_edit;
+--        IF SQL%NOTFOUND THEN RAISE no_jobs_updated;
+--        END IF;
+--        EXCEPTION
+--            WHEN no_jobs_updated THEN
+--            error_number := SQLCODE;
+--            error_info := SQLERRM;
+--            INSERT INTO error_log(user_name, error_number, error_msg) VALUES (USER, error_number, error_info);
+--    END edytuj_opis;
+--/
+--BEGIN
+--    edytuj_opis('AI_devfeds', 'Jabuszkdsdso');
+--END;
+--/
+--DROP PROCEDURE edytuj_opis;
+
+
+
+--CREATE OR REPLACE PROCEDURE usun_prace(job_id_to_del IN VARCHAR) IS
+--    error_number error_log.error_number%TYPE;
+--    error_info error_log.error_msg%TYPE;
+--    no_jobs_deleted EXCEPTION;
+--    BEGIN
+--        DELETE FROM jobs WHERE jobs.job_id = job_id_to_del;
+--        IF SQL%NOTFOUND THEN RAISE no_jobs_deleted;
+--        END IF;
+--        EXCEPTION
+--            WHEN no_jobs_deleted THEN
+--            error_number := SQLCODE;
+--            error_info := SQLERRM;
+--            INSERT INTO error_log(user_name, error_number, error_msg)
+--            VALUES (USER, error_number, error_info);
+--    END usun_prace;
+--/
+--BEGIN
+--    usun_prace('AI2_men');
+--    usun_prace('Kapuczyno');
+--END;
+--/
+--SET SERVEROUTPUT ON
+--
+--CREATE OR REPLACE PROCEDURE pokaz_zarobki(v_user_id IN NUMBER, v_name OUT VARCHAR, v_salary OUT NUMBER) IS
+--    BEGIN
+--        SELECT last_name, salary INTO v_name, v_salary FROM employees WHERE employee_id = v_user_id;
+--    END pokaz_zarobki;
+--    
+--/
+--DECLARE
+--    v_name employees.last_name%TYPE;
+--    v_salary employees.salary%TYPE;
+--    
+--BEGIN
+--
+--    pokaz_zarobki(114, v_name, v_salary);
+--    DBMS_OUTPUT.PUT_LINE(v_name);
+--    DBMS_OUTPUT.PUT_LINE(v_salary);
+--    
+--END;
+--/
+--DROP PROCEDURE pokaz_zarobki;
+
+CREATE OR REPLACE PROCEDURE dodaj_pracownika(v_first_name IN VARCHAR, v_last_name IN VARCHAR,email IN VARCHAR, v_salary IN NUMBER) AS
+    high_salary EXCEPTION;
+    BEGIN
+    IF v_salary <= 20000 THEN
+    INSERT INTO employees(first_name, last_name, email, hire_date,job_id, salary, manager_id) 
+    VALUES (v_first_name,v_last_name,email,'22/12/28','SA_MAN',v_salary,null);
+    ELSE RAISE high_salary;
+    END IF;
+    EXCEPTION
+        WHEN high_salary THEN
+        INSERT INTO error_log(user_name, error_number, error_msg) VALUES (v_first_name, 69, 'Salary is toooo huge');
+    
+    END dodaj_pracownika;
+    
+/
+BEGIN
+    dodaj_pracownika('Janek','Janowy','rdso@k.k',4000);
+    dodaj_pracownika('Jaroslaw','Kaczorek','klamstwo@k.ru',40000);
+    
+END;
+/
+DROP PROCEDURE dodaj_pracownika;
+
+--
+--SELECT * FROM JOBS;
