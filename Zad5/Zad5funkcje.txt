@@ -1,0 +1,98 @@
+--CREATE OR REPLACE FUNCTION nazwa_pracy(v_job_id VARCHAR) RETURN VARCHAR IS
+--    v_job_title jobs.job_title%TYPE;
+--    BEGIN
+--        SELECT job_title INTO v_job_title FROM jobs WHERE job_id = v_job_id;
+--        RETURN v_job_title;
+--        EXCEPTION WHEN NO_DATA_FOUND THEN RETURN 'No data found';
+--    END nazwa_pracy;
+--/
+--BEGIN
+--    DBMS_OUTPUT.PUT_LINE(nazwa_pracy('AD_PRES'));
+--    DBMS_OUTPUT.PUT_LINE(nazwa_pracy('AD_WO'));
+--END;
+--/
+--DROP FUNCTION nazwa_pracy;
+
+--SET SERVEROUTPUT ON
+--CREATE OR REPLACE FUNCTION wez_roczne_wynagrodzenie(v_employee_id IN NUMBER) RETURN NUMBER IS
+--    v_salary employees.salary%TYPE;
+--    BEGIN
+--    SELECT salary * (12 + commission_pct) INTO v_salary FROM EMPLOYEES WHERE employee_id = v_employee_id;
+--    RETURN v_salary;
+--    END wez_roczne_wynagrodzenie; 
+--
+--/
+--BEGIN
+--    DBMS_OUTPUT.PUT_LINE(wez_roczne_wynagrodzenie(174));
+--END;
+--/
+
+--CREATE OR REPLACE FUNCTION wez_prefix(phone_number VARCHAR2) RETURN VARCHAR2 IS
+--    prefix VARCHAR2(4);
+--    BEGIN
+--      SELECT SUBSTR(phone_number, 1, 3) INTO prefix FROM DUAL;
+--      RETURN prefix;
+--    END wez_prefix;
+--
+--/
+--BEGIN
+--    DBMS_OUTPUT.PUT_LINE(wez_prefix('+48123456789'));
+--END;
+--/
+
+--CREATE OR REPLACE FUNCTION tylko_pierwsza_i_ostatnia_duza(str IN VARCHAR2) RETURN VARCHAR2
+--IS
+--BEGIN
+--  RETURN INITCAP(SUBSTR(str, 1, 1)) || LOWER(SUBSTR(str, 2, LENGTH(str) - 2)) || UPPER(SUBSTR(str, LENGTH(str)));
+--END tylko_pierwsza_i_ostatnia_duza; 
+--
+--/
+--BEGIN
+--  DBMS_OUTPUT.PUT_LINE(tylko_pierwsza_i_ostatnia_duza('HeLlo WoRld'));
+--END;
+--/
+
+--CREATE OR REPLACE FUNCTION getDateFromPESEL (pesel IN VARCHAR2)RETURN DATE IS
+--   date_of_birth DATE;
+--BEGIN
+--   SELECT TO_DATE(
+--          SUBSTR(pesel, 1, 2) 
+--          || '-' || SUBSTR(pesel, 3, 2) 
+--          || '-' || SUBSTR(pesel, 5, 2),
+--          'YY-MM-DD'
+--        )
+--   INTO date_of_birth
+--   FROM dual;
+--   RETURN date_of_birth;
+--END;
+--
+--/
+--BEGIN
+--  DBMS_OUTPUT.PUT_LINE(getDateFromPESEL('99032107777'));
+--END;
+--/
+
+CREATE OR REPLACE FUNCTION getEmployeesAndDepartmentsByCountry(country VARCHAR) 
+RETURN VARCHAR
+IS
+num_employees NUMBER;
+num_departments NUMBER;
+BEGIN 
+SELECT COUNT(*) INTO num_employees 
+FROM countries c 
+INNER JOIN employees e 
+ON c.country_id = e.country_id 
+WHERE c.country_name = country;
+
+SELECT COUNT(*) INTO num_departments 
+FROM countries c 
+INNER JOIN departments d 
+ON c.country_id = d.country_id 
+WHERE c.country_name = country;
+
+DBMS_OUTPUT.PUT_LINE(num_employees);
+DBMS_OUTPUT.PUT_LINE(num_departments);
+
+RETURN num_employees || ' ' || num_departments;
+END;
+/
