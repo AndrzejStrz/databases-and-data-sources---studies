@@ -1,15 +1,20 @@
-import requests
-from validate import validate
+from datetime import date
+import validate
 from sqlalchemy import create_engine
-import pandas as pd
+
+
 
 name_file = 'bitcoin.csv'
-open(name_file, "wb").write(requests.get("https://stooq.pl/q/d/l/?s=btc.v&i=d").content)
 
-validate(name_file)
+df = validate.download_and_validate(name_file)
 
 engine = create_engine("postgresql+psycopg2://postgres:admin@localhost:5432/postgres")
 connection = engine.connect()
 
-df = pd.read_csv(name_file, sep=',')
-df = df.to_sql(name_file, connection)
+
+if not name_file+" "+str(date.today()) == engine.table_names()[-1]:
+    df = df.to_sql(name_file+" "+str(date.today()), connection)
+
+
+validate.show_stats(df, connection)
+validate.show_stats_for_selected_data(df, date(2011,11,1), date(2011,11,23),connection)
