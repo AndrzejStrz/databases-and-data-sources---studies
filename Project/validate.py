@@ -1,4 +1,5 @@
 from datetime import date
+from sklearn.linear_model import LinearRegression, Ridge
 
 import numpy
 import numpy as np
@@ -8,6 +9,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import shapiro
 import warnings
 from scipy.stats import ttest_rel, f_oneway, ttest_ind
+from sklearn import metrics
 
 warnings.filterwarnings('ignore')
 
@@ -117,3 +119,59 @@ def hipoteza(connection):
         print('Różnice są istotne statystycznie')
     else:
         print('Różnice nie są istotne statystycznie')
+
+
+from sklearn.model_selection import train_test_split
+def regresja(df_old, df_now):
+
+    df_old['Data'] = pd.to_datetime(df_old['Data'])
+    df_old = df_old.reset_index(drop=True)
+
+    x = df_old[['Otwarcie', 'Najwyzszy', 'Najnizszy']]
+    y = df_old['Zamkniecie'].shift(-1)
+    y = y[:-1]
+    x = x[:-1]
+
+    train_x, test_x, train_y, test_y = train_test_split(x, y, test_size=0.7, shuffle=False, random_state=0)
+    regression = LinearRegression()
+    regression.fit(train_x.values, train_y.values)
+    print("regression coefficient", regression.coef_)
+    print("regression intercept", regression.intercept_)
+    regression_confidence = regression.score(test_x.values, test_y.values)
+
+    print("linear regression confidence: ", regression_confidence)
+    predicted = regression.predict(test_x.values)
+
+    dfr = pd.DataFrame({'Actual_Price': test_y, 'Predicted_Price': predicted})
+    print('Mean Absolute Error (MAE):', metrics.mean_absolute_error(test_y, predicted))
+    print('Mean Squared Error (MSE) :', metrics.mean_squared_error(test_y, predicted))
+    print('Root Mean Squared Error (RMSE):', np.sqrt(metrics.mean_squared_error(test_y, predicted)))
+    plt.scatter(dfr.Actual_Price, dfr.Predicted_Price, color='Darkblue')
+    plt.xlabel("Actual Price")
+    plt.ylabel("Predicted Price")
+    plt.show()
+
+    print('Tomorrow predict:', regression.predict(df_now[['Otwarcie', 'Najwyzszy', 'Najnizszy']].tail(1)))
+
+    print('-----')
+    ridgeModelChosen = Ridge(alpha=3000, copy_X=False, random_state=32)
+    ridgeModelChosen.fit(train_x, train_y)
+
+    print("regression coefficient", ridgeModelChosen.coef_)
+    print("regression intercept", ridgeModelChosen.intercept_)
+    regression_confidence = ridgeModelChosen.score(test_x.values, test_y.values)
+
+    print("linear regression confidence: ", regression_confidence)
+    predicted = ridgeModelChosen.predict(test_x.values)
+
+    dfr = pd.DataFrame({'Actual_Price': test_y, 'Predicted_Price': predicted})
+    print('Mean Absolute Error (MAE):', metrics.mean_absolute_error(test_y, predicted))
+    print('Mean Squared Error (MSE) :', metrics.mean_squared_error(test_y, predicted))
+    print('Root Mean Squared Error (RMSE):', np.sqrt(metrics.mean_squared_error(test_y, predicted)))
+    plt.scatter(dfr.Actual_Price, dfr.Predicted_Price, color='Darkblue')
+    plt.xlabel("Actual Price")
+    plt.ylabel("Predicted Price")
+    plt.show()
+
+    print('Tomorrow predict:', ridgeModelChosen.predict(df_now[['Otwarcie', 'Najwyzszy', 'Najnizszy']].tail(1)))
+
