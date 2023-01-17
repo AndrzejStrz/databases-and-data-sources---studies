@@ -11,6 +11,8 @@ import warnings
 from scipy.stats import ttest_rel, f_oneway, ttest_ind
 from sklearn import metrics
 
+
+
 warnings.filterwarnings('ignore')
 
 
@@ -174,4 +176,9 @@ def regresja(df_old, df_now):
     plt.show()
 
     print('Tomorrow predict:', ridgeModelChosen.predict(df_now[['Otwarcie', 'Najwyzszy', 'Najnizszy']].tail(1)))
+
+def dodaj_rekord(engine,table, data):
+    df = pd.DataFrame(data, columns = ['Data', 'Otwarcie', 'Najwyzszy', 'Najnizszy', 'Zamkniecie', 'Wolumen'])
+    print(df)
+    df.to_sql(table, engine, if_exists='append', index=False)
 
