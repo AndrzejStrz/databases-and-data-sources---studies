@@ -10,6 +10,7 @@ from scipy.stats import shapiro
 import warnings
 from scipy.stats import ttest_rel, f_oneway, ttest_ind
 from sklearn import metrics
+import datetime
 
 
 
@@ -178,9 +179,13 @@ def regresja(df_old, df_now):
     print('Tomorrow predict:', ridgeModelChosen.predict(df_now[['Otwarcie', 'Najwyzszy', 'Najnizszy']].tail(1)))
 
 def dodaj_rekord(engine, table, data):
+    walidacja_dodaj_i_update(data)
+    data = [data]
     df = pd.DataFrame(data, columns = ['Data', 'Otwarcie', 'Najwyzszy', 'Najnizszy', 'Zamkniecie', 'Wolumen'])
     df_2 = pd.read_sql_table(table, engine.connect())['index']
     df.insert(0,'index', df_2[len(df_2)-1]+1, True)
+
+
 
     logi = [datetime.now(), 'Do tabeli '+str(table)+' dodano wiersz o indeksie '+ str(df_2[len(df_2)-1]+1)]
     df_logi =pd.DataFrame(logi)
@@ -189,20 +194,85 @@ def dodaj_rekord(engine, table, data):
     df.to_sql(table, engine, if_exists='append', index=False)
 
 def usun_rekord(engine, table, index_to_drop):
+    walidacja_usun(engine, table, index_to_drop)
+
+    walidacja_usun(engine, table, index_to_drop)
     df = pd.read_sql_table(table, engine.connect())
+
+
     df[df['index'] == index_to_drop].to_sql('usuniete', engine, if_exists='append', index=False)
     df = df[df['index'] != index_to_drop]
     df.to_sql(table, engine, if_exists='replace', index=False)
+
 
     logi = [datetime.now(), 'Z tabeli ' + str(table) + ' usunięto wiersz o indeksie ' + str(index_to_drop)]
     df_logi = pd.DataFrame(logi)
     df_logi.T.to_sql('logi', engine, if_exists='append', index=False)
 
 def update_rekord(engine, table, index_to_update, dane):
+
+    walidacja_update(engine,table,index_to_update,dane)
+    walidacja_dodaj_i_update(dane)
+
     df = pd.read_sql_table(table, engine.connect())
-    df[df['index'] == index_to_update] = dane
+    dane[0] = datetime.datetime.strptime(dane[0], '%Y-%m-%d')
+    dane = [dane]
+    print(dane)
+
+    df_to_update = pd.DataFrame(dane, columns=['Data', 'Otwarcie', 'Najwyzszy', 'Najnizszy', 'Zamkniecie', 'Wolumen'])
+    df_to_update.insert(0, 'index', index_to_update, True)
+
+    for x in range(df.shape[0]):
+        if df.iloc[x]['index'] == index_to_update:
+            df.iloc[x] = df_to_update
+    print(df)
     df.to_sql(table, engine, if_exists='replace', index=False)
 
     logi = [datetime.now(), 'Na tabeli ' + str(table) + ' zmieniono wiersz o indeksie ' + str(index_to_update)]
     df_logi = pd.DataFrame(logi)
     df_logi.T.to_sql('logi', engine, if_exists='append', index=False)
+
+
+def walidacja_usun(engine, table, index_to_drop):
+    df = pd.read_sql_table(table, engine.connect())
+    if len(df[df['index'] == index_to_drop].index) == 0:
+        raise ValueError('nie ma takiego rekordu')
+    if len(df[df['index'] == index_to_drop].index) > 1:
+        raise ValueError('coś poszło nie tak i jest kilka takich indeksow')
+
+def walidacja_update(engine, table,  index_to_update, dane):
+    df = pd.read_sql_table(table, engine.connect())
+
+    if len(df[df['index'] == index_to_update].index) != 1:
+        raise ValueError('Rekordow o tym indeksie nie jest rowno 1')
+    if len(df[df['index'] == dane[0]].index) != 0:
+        raise ValueError('Probujesz nadac indeks, ktory juz istnieje')
+
+
+def walidacja_dodaj_i_update(data):
+    data= [data]
+    df = pd.DataFrame(data, columns=['Data', 'Otwarcie', 'Najwyzszy', 'Najnizszy', 'Zamkniecie', 'Wolumen'])
+
+    if not (len(df['Data'][0]) == 10 and str(df['Data'][0][4]) == '-' and str(df['Data'][0][7]) == '-'):
+        raise ValueError('Data nie jest w formacie yyyy-mm-dd')
+
+    if int(df['Data'][0][0:4]) < 2010:
+        raise ValueError('Dane pochodza z czasow kiedy nie bylo bitcoina')
+    if int(df['Data'][0][5:7]) > 12:
+        raise ValueError('Miesiac ma wartosc wieksza niz 12')
+    if int(df['Data'][0][8:10]) > 31:
+        raise ValueError('Dzien ma wartosc wieksza niz 31')
+
+    for column in [df['Otwarcie'], df['Najwyzszy'], df['Najnizszy'], df['Zamkniecie']]:
+        for value in column:
+            try:
+                float(value)
+            except ValueError or TypeError:
+                raise ValueError('Kolumna', column, ' nie zawiera samych float')
+
+    try:
+        for item in df['Wolumen']:
+            if item is not None:
+                float(item)
+    except ValueError or TypeError:
+        raise ValueError('Kolumna Wolumen nie zawiera tylko float lub null ')
