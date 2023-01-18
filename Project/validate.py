@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from sklearn.linear_model import LinearRegression, Ridge
 
 import numpy
@@ -177,8 +177,32 @@ def regresja(df_old, df_now):
 
     print('Tomorrow predict:', ridgeModelChosen.predict(df_now[['Otwarcie', 'Najwyzszy', 'Najnizszy']].tail(1)))
 
-def dodaj_rekord(engine,table, data):
+def dodaj_rekord(engine, table, data):
     df = pd.DataFrame(data, columns = ['Data', 'Otwarcie', 'Najwyzszy', 'Najnizszy', 'Zamkniecie', 'Wolumen'])
-    print(df)
+    df_2 = pd.read_sql_table(table, engine.connect())['index']
+    df.insert(0,'index', df_2[len(df_2)-1]+1, True)
+
+    logi = [datetime.now(), 'Do tabeli '+str(table)+' dodano wiersz o indeksie '+ str(df_2[len(df_2)-1]+1)]
+    df_logi =pd.DataFrame(logi)
+    df_logi.T.to_sql('logi', engine, if_exists='append', index=False)
+
     df.to_sql(table, engine, if_exists='append', index=False)
 
+def usun_rekord(engine, table, index_to_drop):
+    df = pd.read_sql_table(table, engine.connect())
+    df[df['index'] == index_to_drop].to_sql('usuniete', engine, if_exists='append', index=False)
+    df = df[df['index'] != index_to_drop]
+    df.to_sql(table, engine, if_exists='replace', index=False)
+
+    logi = [datetime.now(), 'Z tabeli ' + str(table) + ' usunięto wiersz o indeksie ' + str(index_to_drop)]
+    df_logi = pd.DataFrame(logi)
+    df_logi.T.to_sql('logi', engine, if_exists='append', index=False)
+
+def update_rekord(engine, table, index_to_update, dane):
+    df = pd.read_sql_table(table, engine.connect())
+    df[df['index'] == index_to_update] = dane
+    df.to_sql(table, engine, if_exists='replace', index=False)
+
+    logi = [datetime.now(), 'Na tabeli ' + str(table) + ' zmieniono wiersz o indeksie ' + str(index_to_update)]
+    df_logi = pd.DataFrame(logi)
+    df_logi.T.to_sql('logi', engine, if_exists='append', index=False)
