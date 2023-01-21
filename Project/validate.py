@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from sklearn.linear_model import LinearRegression, Ridge
 
 import numpy
@@ -187,7 +187,7 @@ def dodaj_rekord(engine, table, data):
 
 
 
-    logi = [datetime.now(), 'Do tabeli '+str(table)+' dodano wiersz o indeksie '+ str(df_2[len(df_2)-1]+1)]
+    logi = [datetime.datetime.now(), 'Do tabeli '+str(table)+' dodano wiersz o indeksie '+ str(df_2[len(df_2)-1]+1)]
     df_logi =pd.DataFrame(logi)
     df_logi.T.to_sql('logi', engine, if_exists='append', index=False)
 
@@ -205,7 +205,7 @@ def usun_rekord(engine, table, index_to_drop):
     df.to_sql(table, engine, if_exists='replace', index=False)
 
 
-    logi = [datetime.now(), 'Z tabeli ' + str(table) + ' usunięto wiersz o indeksie ' + str(index_to_drop)]
+    logi = [datetime.datetime.now(), 'Z tabeli ' + str(table) + ' usunięto wiersz o indeksie ' + str(index_to_drop)]
     df_logi = pd.DataFrame(logi)
     df_logi.T.to_sql('logi', engine, if_exists='append', index=False)
 
@@ -217,20 +217,17 @@ def update_rekord(engine, table, index_to_update, dane):
     df = pd.read_sql_table(table, engine.connect())
     dane[0] = datetime.datetime.strptime(dane[0], '%Y-%m-%d')
     dane = [dane]
-    print(dane)
 
     df_to_update = pd.DataFrame(dane, columns=['Data', 'Otwarcie', 'Najwyzszy', 'Najnizszy', 'Zamkniecie', 'Wolumen'])
     df_to_update.insert(0, 'index', index_to_update, True)
+    df.loc[index_to_update] = df_to_update.loc[0]
 
-    for x in range(df.shape[0]):
-        if df.iloc[x]['index'] == index_to_update:
-            df.iloc[x] = df_to_update
-    print(df)
-    df.to_sql(table, engine, if_exists='replace', index=False)
-
-    logi = [datetime.now(), 'Na tabeli ' + str(table) + ' zmieniono wiersz o indeksie ' + str(index_to_update)]
+    logi = [datetime.datetime.now(), 'Na tabeli ' + str(table) + ' zmieniono wiersz o indeksie ' + str(index_to_update)]
     df_logi = pd.DataFrame(logi)
     df_logi.T.to_sql('logi', engine, if_exists='append', index=False)
+
+    df.to_sql(table, engine, if_exists='replace', index=False)
+
 
 
 def walidacja_usun(engine, table, index_to_drop):
