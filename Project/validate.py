@@ -279,3 +279,54 @@ def wez_dane_pomiedzy_daty(df, start_date, end_date):
 
 def wez_dane_pomiedzy_wartosci(df, column=0, min_val=0, max_val=1000):
     return df[(df[column] >= min_val) & (df[column] <= max_val)]
+
+def zestawienie_miesieczne(engine):
+    df = pd.read_sql_table('bitcoin.csv', engine.connect())
+    del df['index']
+    df['Data'] = pd.to_datetime(df['Data'])
+    df['month'] = df['Data'].dt.month.astype(int)
+    df['year'] = df['Data'].dt.year.astype(int)
+    print(df['month'])
+    df_month = df.groupby(['year', 'month']).agg({'Zamkniecie': 'mean'})
+
+    df_month.plot()
+    plt.show()
+
+    df_month = df.groupby(['year', 'month']).agg({'Zamkniecie': 'mean'}).reset_index()
+    df_month.to_sql(f'month', engine.connect(), if_exists='replace', index=False)
+
+
+
+
+def zestawienie_kwartalne(engine):
+    df = pd.read_sql_table('bitcoin.csv', engine.connect())
+    del df['index']
+    df['Data'] = pd.to_datetime(df['Data'])
+    df['quarter'] = df['Data'].dt.to_period('Q')
+
+    df_kwartalne = df.groupby(['quarter']).agg({'Zamkniecie': 'mean'}).reset_index().astype(str)
+
+    df_kwartalne.to_sql(f'quarter', engine.connect(), if_exists='replace', index=False)
+
+    df_quarter = df.groupby(['quarter']).agg({'Zamkniecie': 'mean'})
+    df_quarter.plot()
+    plt.show()
+
+
+def zestawienie_roczne(engine):
+    df = pd.read_sql_table('bitcoin.csv', engine.connect())
+    del df['index']
+    df['Data'] = pd.to_datetime(df['Data'])
+    year = df['Data'].dt.year
+    df['year'] = year.astype(int)
+
+    df_year = df.groupby(['year']).agg({'Zamkniecie': 'mean'})
+    df_year.plot()
+    plt.show()
+
+    df_year = df.groupby(['year']).agg({'Zamkniecie': 'mean'}).reset_index()
+    df_year.to_sql(f'year', engine.connect(), if_exists='replace', index=False)
+
+
+
+
